@@ -3,15 +3,15 @@ from time import sleep
 from Board import Board
 from random import randint
 from copy import deepcopy
-
+from datetime import datetime
 
 
 class Population:
 
-    def __init__(self,N):
-        self.population = [Board() for i in range(N)]
+    def __init__(self,popsize=20,boardsize=8):
+        self.popsize = popsize
+        self.population = [Board(boardsize) for i in range(self.popsize)]
         self.sorted_population = None
-        self.popsize = N
 
     def printPop(self):
         print('\nPopulation:')
@@ -22,7 +22,6 @@ class Population:
         for board in self.population:
             board.printBoard()
             print(board.attackingPairs())
-
 
 
     def sortBoards(self):
@@ -81,7 +80,7 @@ class Population:
                 new_boards.append(b1)
                 new_boards.append(b2)
 
-        old_and_new_boards = self.population + new_boards
+        old_and_new_boards = deepcopy(self.population) + new_boards
         [board.mutate() for board in old_and_new_boards]
         self.population = self.deleteDupes(old_and_new_boards + self.population)
 
@@ -99,7 +98,7 @@ class Population:
 
 
 
-        reproduction_steps = 50
+        reproduction_steps = 550
 
         gen = []
         best = []
@@ -135,8 +134,8 @@ class Population:
             self.mateGrid()
 
 
-
-        plt.savefig('evolve_output.png')
+        date_string = datetime.now().strftime("%H-%M-%S")
+        plt.savefig('evolve_output_' + date_string + '.png')
 
 
 
@@ -149,42 +148,6 @@ class Population:
 
 '''
 
-
-new_boards.append((b1,b1.attackingPairs(),'new'))
-new_boards.append((b2,b2.attackingPairs(),'new'))
-
-
-        old_count = sum([1 for individ in new_pop if individ[2]=='old'])
-        new_count = sum([1 for individ in new_pop if individ[2]=='new'])
-
-    # print(new_pop)
-    # print('this many old ones:',old_count)
-    # print('this many new ones:',new_count)
-
-        #old_and_new = old_boards_sorted + new_boards
-        #new_pop = self.sortTupleByFitness(old_and_new)[:self.popsize]
-
-        #print('crossover:',crossover)
-        #
-        # print('boards before:')
-        # print(board1.board_state)
-        # print(board2.board_state)
-
-
-
-        # print('boards after:')
-        # print(board1.board_state)
-        # print(board2.board_state)
-
-
-
-                [print(tuple[1],tuple[0].board_state) for tuple in self.sorted_population]
-
-
-
-new_pop = self.sortTupleByFitness(new_boards)[:self.popsize]
-
-self.population = [tuple[0] for tuple in new_pop]
 
 
 

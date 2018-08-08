@@ -42,16 +42,12 @@ class Population:
         return((best,mean))
 
     def mate(self,board1,board2):
-
         board1 = deepcopy(board1)
         board2 = deepcopy(board2)
-
         crossover = randint(1,board1.board_size-1)
-
         temp = board1.board_state[:crossover]
         board1.board_state[:crossover] = board2.board_state[:crossover]
         board2.board_state[:crossover] = temp
-
         return(board1,board2)
 
 

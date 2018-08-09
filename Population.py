@@ -1,34 +1,52 @@
 import matplotlib.pyplot as plt
 from time import sleep
-from Board import Board
 from random import randint
 from copy import deepcopy
 from datetime import datetime
 
 
+'''
+The object must have the following functions or attributes:
+-fitnessFunction()
+-mutate()
+-isSame()
+-mate()
+-state (maybe change to getState()?)
+'''
+
 class Population:
 
-    def __init__(self,popsize=20,boardsize=8):
+    def __init__(self,individ_class,popsize,**kwargs):
+
+        self.individ_class = individ_class
         self.popsize = popsize
-        self.population = [Board(boardsize) for i in range(self.popsize)]
+        self.population = [self.createNewIndivid(**kwargs) for i in range(self.popsize)]
         self.sorted_population = None
+
+
+    def createNewIndivid(self, **kwargs):
+        return(self.individ_class(**kwargs))
+
+    '''def __init__(self,popsize=20,individsize=8):
+        self.popsize = popsize
+        self.population = [Board(individsize) for i in range(self.popsize)]
+        self.sorted_population = None'''
 
     def printPop(self):
         print('\nPopulation:')
-        [print(board.board_state) for board in self.population]
+        [print(individ.state) for individ in self.population]
         print('\n\n')
 
-    def printAttackPairs(self):
-        for board in self.population:
-            board.printBoard()
-            print(board.attackingPairs())
+    def printFitnessFunctions(self):
+        for individ in self.population:
+            individ.printState()
+            print(individ.fitnessFunction())
 
-
-    def sortBoards(self):
-        boards_fitness = [(board,board.attackingPairs(),'old') for board in self.population]
-        boards_fitness = sorted(boards_fitness,key=lambda x: x[1])
-        #print(boards_fitness)
-        self.sorted_population = boards_fitness
+    def sortIndivids(self):
+        individs_fitness = [(individ,individ.fitnessFunction(),'old') for individ in self.population]
+        individs_fitness = sorted(individs_fitness,key=lambda x: x[1])
+        #print(individs_fitness)
+        self.sorted_population = individs_fitness
 
     def sortTupleByFitness(self,tuple_list):
         return(sorted(tuple_list,key=lambda x: x[1]))
@@ -38,49 +56,40 @@ class Population:
             return((0,0))
 
         best = self.sorted_population[0][1]
-        mean = sum([boardfitness[1] for boardfitness in self.sorted_population])/(1.0*len(self.population))
+        mean = sum([individfitness[1] for individfitness in self.sorted_population])/(1.0*len(self.population))
         return((best,mean))
-
-    def mate(self,board1,board2):
-        board1 = deepcopy(board1)
-        board2 = deepcopy(board2)
-        crossover = randint(1,board1.board_size-1)
-        temp = board1.board_state[:crossover]
-        board1.board_state[:crossover] = board2.board_state[:crossover]
-        board2.board_state[:crossover] = temp
-        return(board1,board2)
-
 
     def deleteDupes(self,pop):
         #Might have to be careful here -- what happens if you delete so many dupes that the pop size is smaller than original?
-        #Pass it just a list of boards. But remember that you have to look at board.board_state
+        #Pass it just a list of individs. But remember that you have to look at individ.state
         #return(list(set(pop)))
 
-        unique_boards = []
+        unique_individs = []
         no_dupes = []
         for i,ind1 in enumerate(pop):
-            if ind1.board_state not in unique_boards:
-                unique_boards.append(ind1.board_state)
+            if ind1.state not in unique_individs:
+                unique_individs.append(ind1.state)
                 no_dupes.append(ind1)
 
         return(no_dupes)
 
     def mateGrid(self):
 
-        new_boards = []
+        new_individs = []
 
         #Mating scheme
         for i in range(self.popsize):
             for j in range(i+1,self.popsize):
-                b1,b2 = self.mate(self.population[i],self.population[j])
-                new_boards.append(b1)
-                new_boards.append(b2)
+                b1,b2 = self.population[i].mate(self.population[j])
+                #b1,b2 = self.mate(self.population[i],self.population[j])
+                new_individs.append(b1)
+                new_individs.append(b2)
 
-        old_and_new_boards = deepcopy(self.population) + new_boards
-        [board.mutate() for board in old_and_new_boards]
-        self.population = self.deleteDupes(old_and_new_boards + self.population)
+        old_and_new_individs = deepcopy(self.population) + new_individs
+        [individ.mutate() for individ in old_and_new_individs]
+        self.population = self.deleteDupes(old_and_new_individs + self.population)
 
-        self.sortBoards()
+        self.sortIndivids()
         self.sorted_population = self.sorted_population[:self.popsize]
         self.population = [tuple[0] for tuple in self.sorted_population]
 
@@ -90,11 +99,11 @@ class Population:
 
 
 
-    def plotEvolve(self):
+    def plotEvolve(self,reproduction_steps = 550):
 
 
 
-        reproduction_steps = 550
+        #reproduction_steps = 550
 
         gen = []
         best = []
@@ -107,7 +116,7 @@ class Population:
         found = False
 
         for i in range(reproduction_steps):
-            self.sortBoards()
+            self.sortIndivids()
             cur_best,cur_mean = self.getBestAndMean()
 
             gen.append(i)
@@ -116,7 +125,7 @@ class Population:
 
             if cur_best==0 and not found:
                 print('found solution!\n')
-                self.sorted_population[0][0].printBoard()
+                self.sorted_population[0][0].printState()
                 found = True
 
             fig.clear()
@@ -136,7 +145,7 @@ class Population:
 
 
         print('\n\nending pop:\n')
-        [print(tuple[1],tuple[0].board_state) for tuple in self.sorted_population]
+        [print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
 
 #
 

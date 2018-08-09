@@ -4,12 +4,15 @@ from Population import Population
 
 
 
-
-pop1 = Population(20,30)
-
+pop1 = Population(Board,20,N=8)
 pop1.printPop()
+pop1.plotEvolve(reproduction_steps = 50)
 
-pop1.plotEvolve()
+
+exit(0)
+pop1 = Population(20,8)
+
+
 
 
 

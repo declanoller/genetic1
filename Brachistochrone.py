@@ -2,7 +2,8 @@ from random import shuffle,randint,sample,random
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
-from math import sqrt
+from math import sqrt,sin,cos
+from scipy.optimize import fsolve
 
 class Brachistochrone:
 
@@ -25,14 +26,53 @@ class Brachistochrone:
         self.xpos.append(1.0)
         self.state.append(0)
 
-        '''print(self.xpos)
-        print(self.state)'''
+        self.sol = None
+
+    def getBrachistochroneSol(self):
+        w = self.width
+        h = self.height
+
+        #This is all solved with the assumption that the starting point,
+        #where the bead is dropped, is (0,0), meaning that the ending point is
+        #(w,-h). See https://math.stackexchange.com/questions/889187/finding-the-equation-for-a-inverted-cycloid-given-two-points
+        #Importantly, this means that what you'll inevitably get will be in that coord. system.
+        #So, to match it up with the coords we've been using (dropped at (0,h), ending at (w,0)), simply add h to y in the end.
+
+        f_t = lambda t: np.cos(t)-1+ (-h/w)*(np.sin(t)-t)
+        t = fsolve(f_t,3.14)[0]
+
+        a = w/(t-sin(t))
+
+        print('a:',a)
+        print('t:',t)
+
+        self.t_range = np.linspace(0,t,40)
+
+        self.x = lambda t: a*(t-np.sin(t))
+        self.y = lambda t: h + a*(np.cos(t)-1)
+
+        self.sol = (self.t_range,self.x,self.y)
+
+    def plotState(self,plot_axis=None):
+
+        if plot_axis is None:
+            ax = plt.gca()
+        else:
+            ax = plot_axis
+
+        if self.sol is not None:
+            t = self.sol[0]
+            x = self.sol[1]
+            y = self.sol[2]
+            ax.plot(x(t),y(t),'-',color='cornflowerblue')
+            #ax.text(.8*self.width,.9*self.height,'ideal: {:.2f}'.format(t[-1]))
 
 
-    def drawPath(self):
+        ax.text(.8*self.width,.85*self.height,'actual: {:.2f}'.format(self.fitnessFunction()))
+        ax.plot(self.xpos,self.state,'o-',color='darkred')
 
+        #return(plt)
 
-        plt.plot(self.xpos,self.state,'bo-')
         plt.show()
 
     def printState(self):
@@ -47,74 +87,43 @@ class Brachistochrone:
         board = ''.join(board)
         print(board)
 
-    def positionFree(self,pos_tuple):
-        if pos_tuple not in self.state:
-            return(True)
-        else:
-            return(False)
 
     def mutate(self):
-        index = randint(0,self.N_segments-1)
-        while True:
-            row = randint(0,self.N_segments-1)
-            col = randint(0,self.N_segments-1)
-            if self.positionFree((row,col)):
-                self.state[index] = (row,col)
-                break
-        self.state = sorted(self.state)
+        #inclusive,exclusive
+        index = randint(1,self.N_segments-1)
+        self.state[index] = random()*self.height
+
 
     def fitnessFunction(self):
 
         g = 9.8
 
-        time_sum = 0
-
         #So if the next point is lower than the previous one, d will be *positive* (i.e., the y axis is down, opposite with the plot axis.)
         d = -np.array([self.state[i+1] - self.state[i] for i in range(self.N_segments)])
-        print('len d:',len(d))
-        print('d:',d)
 
+        #Be careful with signs and indices!
         v = sqrt(2*g)*np.sqrt([0] + [sum(d[:(i+1)]) for i in range(len(d))])
-        print('len v:',len(v))
-        print('v:',v)
+        v = v[:-1]
 
-        t = np.sqrt(v**2 + 2*g*d)/(g*d/np.sqrt(d**2 + 1))
-        print('len t:',len(t))
-        print('t:',t)
+        t = (np.sqrt(v**2 + 2*g*d) - v)/(g*d/np.sqrt(d**2 + self.delta_x**2))
 
-        vs = []
+        return(sum(t))
 
-        for i in range(self.N_segments):
-
-            d = self.state[i+1] - self.state[i]
-
-
-
-        #for i in range(self.N_segments):
-        return(0)
-
-
-
-
-    def isSameBoard(self,other_board):
-        return(set(self.state)==set(other_board.state))
-
-
-    def mate(self,other_board):
-        newboard_1 = deepcopy(self)
-        newboard_2 = deepcopy(other_board)
+    def mate(self,other_individ):
+        newindivid_1 = deepcopy(self)
+        newindivid_2 = deepcopy(other_individ)
         #exclusive, inclusive
         N_switch = randint(0,self.N_segments-1)
         switch_indices = sample(list(range(self.N_segments)),N_switch)
 
         for index in switch_indices:
-            temp = newboard_1.state[index]
-            newboard_1.state[index] = newboard_2.state[index]
-            newboard_2.state[index] = temp
+            temp = newindivid_1.state[index]
+            newindivid_1.state[index] = newindivid_2.state[index]
+            newindivid_2.state[index] = temp
 
-        newboard_1.state = sorted(newboard_1.state)
-        newboard_2.state = sorted(newboard_2.state)
-        return(newboard_1,newboard_2)
+        newindivid_1.state = sorted(newindivid_1.state)
+        newindivid_2.state = sorted(newindivid_2.state)
+        return(newindivid_1,newindivid_2)
 
 
 

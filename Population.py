@@ -101,13 +101,12 @@ class Population:
 
     def plotEvolve(self,generations = 550):
 
-
-
-        #generations = 550
-
         gen = []
         best = []
         mean = []
+
+        f, axes = plt.subplots(2,1,figsize=(8,10))
+        #axes.subplot(212)
 
         fig = plt.figure()
         fig.show()

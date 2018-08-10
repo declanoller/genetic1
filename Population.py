@@ -18,19 +18,19 @@ class Population:
 
     def __init__(self,individ_class,popsize,**kwargs):
 
+
+        self.kwargs_str = '__'.join(['{}={}'.format(x[0],x[1]) for x in kwargs.items()])
+        print(self.kwargs_str)
+
         self.individ_class = individ_class
+        print('using',individ_class.__name__,'class')
+        self.class_name = individ_class.__name__
         self.popsize = popsize
         self.population = [self.createNewIndivid(**kwargs) for i in range(self.popsize)]
         self.sorted_population = None
 
-
     def createNewIndivid(self, **kwargs):
         return(self.individ_class(**kwargs))
-
-    '''def __init__(self,popsize=20,individsize=8):
-        self.popsize = popsize
-        self.population = [Board(individsize) for i in range(self.popsize)]
-        self.sorted_population = None'''
 
     def printPop(self):
         print('\nPopulation:')
@@ -99,11 +99,11 @@ class Population:
 
 
 
-    def plotEvolve(self,reproduction_steps = 550):
+    def plotEvolve(self,generations = 550):
 
 
 
-        #reproduction_steps = 550
+        #generations = 550
 
         gen = []
         best = []
@@ -115,7 +115,9 @@ class Population:
 
         found = False
 
-        for i in range(reproduction_steps):
+        cur_best,cur_mean = 0,0
+
+        for i in range(generations):
             self.sortIndivids()
             cur_best,cur_mean = self.getBestAndMean()
 
@@ -124,7 +126,7 @@ class Population:
             mean.append(cur_mean)
 
             if cur_best==0 and not found:
-                print('found solution!\n')
+                print('found solution in generation {}!\n'.format(i))
                 self.sorted_population[0][0].printState()
                 found = True
 
@@ -134,19 +136,60 @@ class Population:
             plt.plot(gen,best,label='best')
             plt.plot(gen,mean,label='mean')
             plt.legend()
+
+            plt.text(.6*i,.8*max(best),'best: {}\nmean: {}'.format(cur_best,cur_mean))
+
             fig.canvas.draw()
 
             self.mateGrid()
 
 
         date_string = datetime.now().strftime("%H-%M-%S")
-        plt.savefig('evolve_output_' + date_string + '.png')
-
-
+        plt.savefig('evolve_' + self.class_name + '__pop=' + str(self.popsize) + '__gen=' + str(generations) + '__' + self.kwargs_str + '__' + date_string + '.png')
 
         print('\n\nending pop:\n')
         [print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
 
+        print('\nending mean:',cur_mean)
+
+
+    def evolve(self,generations = 550):
+
+
+
+        #generations = 550
+
+        gen = []
+        best = []
+        mean = []
+
+        found = False
+
+        cur_best,cur_mean = 0,0
+
+        for i in range(generations):
+            self.sortIndivids()
+            cur_best,cur_mean = self.getBestAndMean()
+
+            gen.append(i)
+            best.append(cur_best)
+            mean.append(cur_mean)
+
+            if cur_best==0 and not found:
+                print('found solution in generation {}!\n'.format(i))
+                self.sorted_population[0][0].printState()
+                found = True
+
+
+            self.mateGrid()
+
+
+        date_string = datetime.now().strftime("%H-%M-%S")
+
+        print('\n\nending pop:\n')
+        [print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
+
+        print('\nending mean:',cur_mean)
 #
 
 #scrap

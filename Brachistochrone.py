@@ -13,6 +13,7 @@ class Brachistochrone:
         #The state is the height of each point, so will be length N+1.
         #To make things easy, I'll also have an xpos list.
         self.N_segments = N
+        self.N_pts = N+1
         self.width = 1.0
         self.height = height
         self.state = [self.height]
@@ -27,6 +28,9 @@ class Brachistochrone:
         self.state.append(0)
 
         self.sol = None
+
+    def copyState(self,other_state):
+        self.state = other_state.state
 
     def getBrachistochroneSol(self):
         w = self.width
@@ -60,6 +64,8 @@ class Brachistochrone:
         else:
             ax = plot_axis
 
+        ax.clear()
+
         if self.sol is not None:
             t = self.sol[0]
             x = self.sol[1]
@@ -73,7 +79,7 @@ class Brachistochrone:
 
         #return(plt)
 
-        plt.show()
+        #plt.show()
 
     def printState(self):
         board = []
@@ -89,10 +95,13 @@ class Brachistochrone:
 
 
     def mutate(self):
-        #inclusive,exclusive
-        index = randint(1,self.N_segments-1)
-        self.state[index] = random()*self.height
-
+        #inclusive,inclusive
+        '''index = randint(1,self.N_segments-1)
+        self.state[index] = random()*self.height'''
+        M = 3
+        index = randint(1,self.N_segments-1-M)
+        rand = random()*self.height
+        self.state[index:(index+M)] = [rand+i*.0001 for i in range(M)]
 
     def fitnessFunction(self):
 
@@ -103,27 +112,66 @@ class Brachistochrone:
 
         #Be careful with signs and indices!
         v = sqrt(2*g)*np.sqrt([0] + [sum(d[:(i+1)]) for i in range(len(d))])
+        #v = np.sqrt([0] + [sum(d[:(i+1)]) for i in range(len(d))])
         v = v[:-1]
-
         t = (np.sqrt(v**2 + 2*g*d) - v)/(g*d/np.sqrt(d**2 + self.delta_x**2))
+        '''print('\n\n')
+        print('state',self.state)
+        print('d',d)
+        print([sum(d[:(i+1)]) for i in range(len(d))])
+        print('v',v)
+        print('t',t)'''
+
 
         return(sum(t))
 
     def mate(self,other_individ):
+
+
+        return(self.mateRandomIndices(other_individ))
+        #return(self.mateCrossover(other_individ))
+
+
+    def mateRandomIndices(self,other_individ):
+
         newindivid_1 = deepcopy(self)
         newindivid_2 = deepcopy(other_individ)
-        #exclusive, inclusive
-        N_switch = randint(0,self.N_segments-1)
-        switch_indices = sample(list(range(self.N_segments)),N_switch)
+        #inclusive, inclusive
+        N_switch = randint(1,self.N_segments-1)
+        switch_indices = sample(list(range(1,self.N_segments)),N_switch)
 
         for index in switch_indices:
             temp = newindivid_1.state[index]
             newindivid_1.state[index] = newindivid_2.state[index]
             newindivid_2.state[index] = temp
 
-        newindivid_1.state = sorted(newindivid_1.state)
-        newindivid_2.state = sorted(newindivid_2.state)
         return(newindivid_1,newindivid_2)
+
+
+
+    def mateCrossover(self,other_individ):
+
+        newindivid_1 = deepcopy(self)
+        newindivid_2 = deepcopy(other_individ)
+        #inclusive, inclusive
+        index = randint(2,self.N_pts-2)
+
+        temp = newindivid_1.state[:index]
+        newindivid_1.state[:index] = newindivid_2.state[:index]
+        newindivid_2.state[:index] = temp
+
+        return(newindivid_1,newindivid_2)
+
+
+    def mateAvg(self,other_individ):
+
+        newindivid_1 = deepcopy(self)
+        newindivid_2 = deepcopy(other_individ)
+
+        newindivid_1.state = ((np.array(newindivid_1.state) + np.array(newindivid_2.state))/2).tolist()
+
+
+        return(newindivid_1,newindivid_1)
 
 
 

@@ -4,15 +4,22 @@
 from Population import Population
 from Brachistochrone import Brachistochrone
 
-b = Brachistochrone(N=5)
-b.getBrachistochroneSol()
-b.plotState()
+Npop = 20
+Npts = 20
+height = 1.4
 
+b = Brachistochrone(N=Npts,height=height)
+b.getBrachistochroneSol()
+
+pop1 = Population(Brachistochrone,Npop,N=Npts,height=height)
+pop1.plotEvolve(generations = 500,state_plot_obj=b)
 exit(0)
 
-pop1 = Population(Brachistochrone,10,N=30,height=1)
 
-pop1.plotEvolve(generations = 50)
+b.plotState()
+
+
+
 
 
 

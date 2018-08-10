@@ -99,24 +99,40 @@ class Population:
 
 
 
-    def plotEvolve(self,generations = 550):
+    def plotEvolve(self,generations = 550,state_plot_obj = None):
 
+
+
+        if state_plot_obj is None:
+            fig = plt.figure()
+            axis = plt.gca()
+            print('no subplot')
+        else:
+            fig, axes = plt.subplots(2,1,figsize=(8,10))
+            axis = axes[0]
+
+        fig.show()
+
+        '''axis.clear()
+        axis.set_xlabel('# generations')
+        axis.set_ylabel('fitness function')
+        axis.plot(list(range(5)),list(range(5)))
+        axis.plot(list(range(5)),list(range(5)))
+        fig.canvas.draw()
+
+        sleep(4)
+        return(0)'''
+
+
+
+        found = False
         gen = []
         best = []
         mean = []
-
-        f, axes = plt.subplots(2,1,figsize=(8,10))
-        #axes.subplot(212)
-
-        fig = plt.figure()
-        fig.show()
-        fig.canvas.draw()
-
-        found = False
-
         cur_best,cur_mean = 0,0
 
         for i in range(generations):
+            #print(i)
             self.sortIndivids()
             cur_best,cur_mean = self.getBestAndMean()
 
@@ -129,14 +145,19 @@ class Population:
                 self.sorted_population[0][0].printState()
                 found = True
 
-            fig.clear()
-            plt.xlabel('# generations')
-            plt.ylabel('fitness function')
-            plt.plot(gen,best,label='best')
-            plt.plot(gen,mean,label='mean')
-            plt.legend()
+            axis.clear()
+            axis.set_xlabel('# generations')
+            axis.set_ylabel('fitness function')
+            axis.plot(gen,best,label='best')
+            axis.plot(gen,mean,label='mean')
+            axis.legend()
 
-            plt.text(.6*i,.8*max(best),'best: {}\nmean: {}'.format(cur_best,cur_mean))
+            axis.text(.6*i,.8*max(best),'best: {:.3f}\nmean: {:.3f}'.format(cur_best,cur_mean))
+
+            if state_plot_obj is not None:
+                state_plot_obj.copyState(self.sorted_population[0][0])
+                state_plot_obj.plotState(plot_axis=axes[1])
+
 
             fig.canvas.draw()
 
@@ -147,7 +168,7 @@ class Population:
         plt.savefig('evolve_' + self.class_name + '__pop=' + str(self.popsize) + '__gen=' + str(generations) + '__' + self.kwargs_str + '__' + date_string + '.png')
 
         print('\n\nending pop:\n')
-        [print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
+        #[print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
 
         print('\nending mean:',cur_mean)
 

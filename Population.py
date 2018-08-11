@@ -67,6 +67,7 @@ class Population:
         unique_individs = []
         no_dupes = []
         for i,ind1 in enumerate(pop):
+            is_unique = np.any([ind1.isSameState(other) for other in no_dupes])
             if ind1.state not in unique_individs:
                 unique_individs.append(ind1.state)
                 no_dupes.append(ind1)

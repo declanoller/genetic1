@@ -32,6 +32,16 @@ class Brachistochrone:
     def copyState(self,other_state):
         self.state = other_state.state
 
+    def isSameState(self,other_state):
+
+        max_diff = ((self.N_pts-2)*self.height)**2
+        diff = np.array(self.state) - np.array(other_state.state)
+        abs_diff = diff**2
+        thresh = 0.05
+        if abs_diff/max_diff < thresh:
+            return(True)
+
+
     def getBrachistochroneSol(self):
         w = self.width
         h = self.height
@@ -57,7 +67,7 @@ class Brachistochrone:
 
         self.sol = (self.t_range,self.x,self.y)
 
-    def plotState(self,plot_axis=None):
+    def plotState(self,plot_axis=None,show=False):
 
         if plot_axis is None:
             ax = plt.gca()
@@ -77,9 +87,10 @@ class Brachistochrone:
         ax.text(.8*self.width,.85*self.height,'actual: {:.2f}'.format(self.fitnessFunction()))
         ax.plot(self.xpos,self.state,'o-',color='darkred')
 
+        if show:
+            plt.show()
         #return(plt)
 
-        #plt.show()
 
     def printState(self):
         board = []
@@ -96,12 +107,12 @@ class Brachistochrone:
 
     def mutate(self):
         #inclusive,inclusive
-        '''index = randint(1,self.N_segments-1)
-        self.state[index] = random()*self.height'''
-        M = 3
+        index = randint(1,self.N_segments-1)
+        self.state[index] = random()*self.height
+        '''M = 3
         index = randint(1,self.N_segments-1-M)
         rand = random()*self.height
-        self.state[index:(index+M)] = [rand+i*.0001 for i in range(M)]
+        self.state[index:(index+M)] = [rand+i*.0001 for i in range(M)]'''
 
     def fitnessFunction(self):
 
@@ -112,6 +123,15 @@ class Brachistochrone:
 
         #Be careful with signs and indices!
         v = sqrt(2*g)*np.sqrt([0] + [sum(d[:(i+1)]) for i in range(len(d))])
+
+        if np.isnan(v).any():
+            print('\n\nbad v:',v)
+            print('\nbad d sum:',[sum(d[:(i+1)]) for i in range(len(d))])
+            print('\nstate',self.state)
+            plt.savefig('test_bad_np.png')
+            exit(0)
+
+
         #v = np.sqrt([0] + [sum(d[:(i+1)]) for i in range(len(d))])
         v = v[:-1]
         t = (np.sqrt(v**2 + 2*g*d) - v)/(g*d/np.sqrt(d**2 + self.delta_x**2))

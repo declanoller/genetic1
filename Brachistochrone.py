@@ -36,10 +36,12 @@ class Brachistochrone:
 
         max_diff = ((self.N_pts-2)*self.height)**2
         diff = np.array(self.state) - np.array(other_state.state)
-        abs_diff = diff**2
-        thresh = 0.05
+        abs_diff = sum(diff**2)
+        thresh = 0.00005
         if abs_diff/max_diff < thresh:
             return(True)
+        else:
+            return(False)
 
 
     def getBrachistochroneSol(self):
@@ -60,7 +62,7 @@ class Brachistochrone:
         print('a:',a)
         print('t:',t)
 
-        self.t_range = np.linspace(0,t,40)
+        self.t_range = np.linspace(0,t,self.N_pts)
 
         self.x = lambda t: a*(t-np.sin(t))
         self.y = lambda t: h + a*(np.cos(t)-1)
@@ -107,12 +109,17 @@ class Brachistochrone:
 
     def mutate(self):
         #inclusive,inclusive
-        index = randint(1,self.N_segments-1)
-        self.state[index] = random()*self.height
+        '''index = randint(1,self.N_segments-1)
+        self.state[index] = random()*self.height'''
         '''M = 3
         index = randint(1,self.N_segments-1-M)
         rand = random()*self.height
         self.state[index:(index+M)] = [rand+i*.0001 for i in range(M)]'''
+        N_switch = randint(1,self.N_pts-3)
+        switch_indices = sample(list(range(1,self.N_pts-2)),N_switch)
+        for index in switch_indices:
+            self.state[index] = random()*self.height
+
 
     def fitnessFunction(self):
 

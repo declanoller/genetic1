@@ -3,7 +3,7 @@ from time import sleep
 from random import randint
 from copy import deepcopy
 from datetime import datetime
-
+import numpy as np
 
 '''
 The object must have the following functions or attributes:
@@ -67,7 +67,8 @@ class Population:
         unique_individs = []
         no_dupes = []
         for i,ind1 in enumerate(pop):
-            is_unique = np.any([ind1.isSameState(other) for other in no_dupes])
+            #is_not_unique = np.any([ind1.isSameState(other) for other in no_dupes])
+            #if not is_not_unique:
             if ind1.state not in unique_individs:
                 unique_individs.append(ind1.state)
                 no_dupes.append(ind1)
@@ -172,6 +173,8 @@ class Population:
         #[print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
 
         print('\nending mean:',cur_mean)
+
+        return(self.sorted_population[0][0])
 
 
     def evolve(self,generations = 550):

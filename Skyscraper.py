@@ -5,7 +5,7 @@ from copy import copy,deepcopy
 
 class Skyscraper:
 
-    def __init__(self,N=4,see_list = []):
+    def __init__(self,N=4,see_list = [],const_list=[]):
         pass
         self.N = N
         #self.state =  np.array([N*[i+1] for i in range(N)])
@@ -15,6 +15,17 @@ class Skyscraper:
         #The way I'm gonna organize this is as a list of lists, where it goes
         #left, right, top, down
         self.see_list = np.array(see_list)
+
+        self.const_list = const_list
+        for const in self.const_list:
+            ind = const[0]
+            val = const[1]
+            self.state[ind[0],ind[1]] = val
+
+
+        self.const_list_indices = [x[0] for x in self.const_list]
+        #print(self.const_list)
+        #print(self.const_list_indices)
 
         self.max_FF = 16*(self.N-1) + 8*(self.N)
 
@@ -99,7 +110,7 @@ class Skyscraper:
 
     def countOccurrenceErrors(self):
 
-        base_occur = [-1]*4
+        base_occur = [-1]*self.N
 
         error_sum = 0
 
@@ -151,7 +162,8 @@ class Skyscraper:
     def mutate(self):
         row = randint(0,self.N-1)
         col = randint(0,self.N-1)
-        self.state[row,col] = randint(1,self.N)
+        if [row,col] not in self.const_list_indices:
+            self.state[row,col] = randint(1,self.N)
 
 
     def mate(self,other):

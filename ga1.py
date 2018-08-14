@@ -13,7 +13,11 @@ from Skyscraper import Skyscraper
 
 easy_SS = [[2,1,3,2],[2,2,1,3],[2,3,1,3],[3,1,2,2]]
 
-pop1 = Population(Skyscraper,popsize=20,N=4,see_list=easy_SS)
+med_88_SS = [[2,3,2,4,4,2,3,1],[1,3,5,3,2,3,2,4],[2,3,2,2,4,6,3,1],[1,2,3,4,3,2,2,4]]
+
+med_88_constlist = [([0,1],1),([1,3],1),([2,1],3),([3,2],3),([4,2],6),([4,3],3),([4,5],5),([5,0],4),([5,4],6),([6,1],2),([6,4],1),([7,4],5)]
+
+pop1 = Population(Skyscraper,popsize=10,N=8,see_list=med_88_SS,const_list=med_88_constlist)
 ending_state = pop1.plotEvolve(generations = 7000)
 
 

@@ -6,6 +6,18 @@ from Brachistochrone import Brachistochrone
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
+from Skyscraper import Skyscraper
+
+
+
+
+easy_SS = [[2,1,3,2],[2,2,1,3],[2,3,1,3],[3,1,2,2]]
+
+pop1 = Population(Skyscraper,popsize=20,N=4,see_list=easy_SS)
+ending_state = pop1.plotEvolve(generations = 7000)
+
+
+exit(0)
 
 Npop = 20
 Npts = 20

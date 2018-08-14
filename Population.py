@@ -67,9 +67,9 @@ class Population:
         unique_individs = []
         no_dupes = []
         for i,ind1 in enumerate(pop):
-            #is_not_unique = np.any([ind1.isSameState(other) for other in no_dupes])
-            #if not is_not_unique:
-            if ind1.state not in unique_individs:
+            #if ind1.state not in unique_individs:
+            is_not_unique = np.any([ind1.isSameState(other) for other in no_dupes])
+            if not is_not_unique:
                 unique_individs.append(ind1.state)
                 no_dupes.append(ind1)
 
@@ -115,23 +115,14 @@ class Population:
 
         fig.show()
 
-        '''axis.clear()
-        axis.set_xlabel('# generations')
-        axis.set_ylabel('fitness function')
-        axis.plot(list(range(5)),list(range(5)))
-        axis.plot(list(range(5)),list(range(5)))
-        fig.canvas.draw()
-
-        sleep(4)
-        return(0)'''
-
-
-
         found = False
         gen = []
         best = []
         mean = []
         cur_best,cur_mean = 0,0
+
+        method_list = [func for func in dir(self.individ_class) if callable(getattr(self.individ_class, func))]
+
 
         for i in range(generations):
             #print(i)
@@ -142,10 +133,12 @@ class Population:
             best.append(cur_best)
             mean.append(cur_mean)
 
-            if cur_best==0 and not found:
-                print('found solution in generation {}!\n'.format(i))
-                self.sorted_population[0][0].printState()
-                found = True
+            if 'solFound' in method_list:
+                if self.sorted_population[0][0].solFound():
+                    print('found solution in generation {}!\n'.format(i))
+                    if 'printState' in method_list:
+                        self.sorted_population[0][0].printState()
+                    break
 
             axis.clear()
             axis.set_xlabel('# generations')

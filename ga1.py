@@ -1,6 +1,6 @@
+import sys
+sys.path.append('../IndividualClasses')
 
-#from Board import Board
-#from BoardUnconstrained import BoardUnconstrained
 from Population import Population
 from Brachistochrone import Brachistochrone
 import matplotlib.pyplot as plt

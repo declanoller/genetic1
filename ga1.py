@@ -9,6 +9,26 @@ from scipy.optimize import fsolve
 from Skyscraper import Skyscraper
 
 
+Npop = 20
+Npts = 30
+height = .3
+
+b = Brachistochrone(N=Npts,height=height)
+b.getBrachistochroneSol()
+
+
+pop1 = Population(Brachistochrone,Npop,N=Npts,height=height)
+ending_state = pop1.plotEvolve(generations = 2000,state_plot_obj=b,plot_whole_pop=True)
+
+exit(0)
+
+
+
+
+
+
+
+
 
 
 easy_SS = [[2,1,3,2],[2,2,1,3],[2,3,1,3],[3,1,2,2]]
@@ -21,14 +41,7 @@ pop1 = Population(Skyscraper,popsize=10,N=8,see_list=med_88_SS,const_list=med_88
 ending_state = pop1.plotEvolve(generations = 7000)
 
 
-exit(0)
 
-Npop = 20
-Npts = 20
-height = .2
-
-b = Brachistochrone(N=Npts,height=height)
-b.getBrachistochroneSol()
 
 sol_x = b.sol[1]
 sol_y = b.sol[2]
@@ -41,8 +54,6 @@ for x_pt in b.xpos:
     sol_numeric_y.append(sol_y(tval))
 
 
-pop1 = Population(Brachistochrone,Npop,N=Npts,height=height)
-ending_state = pop1.plotEvolve(generations = 70,state_plot_obj=b)
 
 
 diff = np.array(ending_state.state) - np.array(sol_numeric_y)
@@ -78,25 +89,6 @@ ideal_sol = 0
 
 b.plotState()
 
-
-
-
-
-
-
-#print(b.fitnessFunction())
-
-
-
-
-'''pop1 = Population(BoardUnconstrained,20,N=30)
-
-pop1.plotEvolve(generations = 2000)
-
-for i in range(5):
-    pop1 = Population(BoardUnconstrained,20,N=30)
-
-    pop1.evolve(generations = 500)'''
 
 
 

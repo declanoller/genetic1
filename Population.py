@@ -80,8 +80,9 @@ class Population:
         new_individs = []
 
         #Mating scheme
-        for i in range(self.popsize):
-            for j in range(i+1,self.popsize):
+        last_ind = min(len(self.population),self.popsize)
+        for i in range(last_ind):
+            for j in range(i+1,last_ind):
                 b1,b2 = self.population[i].mate(self.population[j])
                 #b1,b2 = self.mate(self.population[i],self.population[j])
                 new_individs.append(b1)
@@ -89,11 +90,21 @@ class Population:
 
         old_and_new_individs = deepcopy(self.population) + new_individs
         [individ.mutate() for individ in old_and_new_individs]
-        self.population = self.deleteDupes(old_and_new_individs + self.population)
+        self.population = old_and_new_individs + self.population
+        self.sortIndivids()
+
+        self.population = self.deleteDupes([x[0] for x in self.sorted_population])
+        self.population = self.population[:self.popsize]
+
+        '''self.sorted_population = self.sorted_population[:self.popsize]
+        self.population = [tuple[0] for tuple in self.sorted_population]'''
+
+
+        '''self.population = self.deleteDupes(old_and_new_individs + self.population)
 
         self.sortIndivids()
         self.sorted_population = self.sorted_population[:self.popsize]
-        self.population = [tuple[0] for tuple in self.sorted_population]
+        self.population = [tuple[0] for tuple in self.sorted_population]'''
 
 
 
@@ -101,7 +112,7 @@ class Population:
 
 
 
-    def plotEvolve(self,generations = 550,state_plot_obj = None):
+    def plotEvolve(self,generations = 550,state_plot_obj = None,plot_whole_pop = False):
 
 
 
@@ -134,10 +145,10 @@ class Population:
             mean.append(cur_mean)
 
             if 'solFound' in method_list:
-                if self.sorted_population[0][0].solFound():
+                if self.population[0].solFound():
                     print('found solution in generation {}!\n'.format(i))
                     if 'printState' in method_list:
-                        self.sorted_population[0][0].printState()
+                        self.population[0].printState()
                     break
 
             axis.clear()
@@ -150,7 +161,12 @@ class Population:
             axis.text(.6*i,.8*max(best),'best: {:.3f}\nmean: {:.3f}'.format(cur_best,cur_mean))
 
             if state_plot_obj is not None:
-                state_plot_obj.copyState(self.sorted_population[0][0])
+                axes[1].clear()
+                if plot_whole_pop:
+                    for ind in self.population:
+                        axes[1].plot(ind.xpos,ind.state)
+
+                state_plot_obj.copyState(self.population[0])
                 state_plot_obj.plotState(plot_axis=axes[1])
 
 
@@ -167,7 +183,7 @@ class Population:
 
         print('\nending mean:',cur_mean)
 
-        return(self.sorted_population[0][0])
+        return(self.population[0])
 
 
     def evolve(self,generations = 550):

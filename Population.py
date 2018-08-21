@@ -7,6 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 import numpy as np
 import os
+from math import floor
 
 '''
 The object must have the following functions or attributes:
@@ -121,8 +122,9 @@ class Population:
         base_name = 'evolve_' + self.class_name + '__pop=' + str(self.popsize) + '__gen=' + str(generations) + '__' + self.kwargs_str + '__' + date_string
 
         if make_gif:
-            print('mkdir '+ 'gifs/' + base_name)
-            os.system('mkdir '+ 'gifs/' + base_name)
+            gif_dir = 'gifs/' + base_name + '/'
+            print(gif_dir)
+            os.system('mkdir '+ gif_dir)
 
 
         if state_plot_obj is None:
@@ -153,6 +155,11 @@ class Population:
             #ax.set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
             # new way:
             #axes[1].set_prop_cycle('color',[scalarMap.to_rgba(i) for i in range(NUM_COLORS)])
+
+        N_pics_gif = 50
+        every_N_gen = floor(generations/N_pics_gif)
+        gif_pic_names = []
+
 
         for i in range(generations):
             #print(i)
@@ -192,11 +199,23 @@ class Population:
 
             fig.canvas.draw()
 
-            if make_gif:
-                plt.savefig('gifs/' + base_name + '/' + str(i+1) + '.png')
+            if make_gif and i%every_N_gen==0:
+                pic_name = gif_dir + str(i+1) + '.png'
+                gif_pic_names.append(pic_name)
+                plt.savefig(pic_name)
 
 
             self.mateGrid()
+
+
+
+        if make_gif:
+            pic_name = gif_dir + str(generations+1) + '.png'
+            gif_pic_names.append(pic_name)
+            plt.savefig(pic_name)
+            pic_args_str = ' '.join(gif_pic_names)
+            os.system('convert {} {}{}.gif'.format(pic_args_str,gif_dir,base_name)) # On windows convert is 'magick'
+
 
 
         plt.savefig(base_name + '.png')

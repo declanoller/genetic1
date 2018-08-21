@@ -11,14 +11,14 @@ from Skyscraper import Skyscraper
 
 Npop = 20
 Npts = 30
-height = .3
+height = 1.3
 
 b = Brachistochrone(N=Npts,height=height)
 b.getBrachistochroneSol()
 
 
 pop1 = Population(Brachistochrone,Npop,N=Npts,height=height)
-ending_state = pop1.plotEvolve(generations = 2000,state_plot_obj=b,plot_whole_pop=True)
+ending_state = pop1.plotEvolve(generations = 50,state_plot_obj=b,plot_whole_pop=True,make_gif=True)
 
 exit(0)
 

@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as mplcm
+import matplotlib.colors as colors
 from time import sleep
 from random import randint
 from copy import deepcopy
 from datetime import datetime
 import numpy as np
+import os
 
 '''
 The object must have the following functions or attributes:
@@ -112,8 +115,14 @@ class Population:
 
 
 
-    def plotEvolve(self,generations = 550,state_plot_obj = None,plot_whole_pop = False):
+    def plotEvolve(self,generations = 550,state_plot_obj = None,plot_whole_pop = False,make_gif=False):
 
+        date_string = datetime.now().strftime("%H-%M-%S")
+        base_name = 'evolve_' + self.class_name + '__pop=' + str(self.popsize) + '__gen=' + str(generations) + '__' + self.kwargs_str + '__' + date_string
+
+        if make_gif:
+            print('mkdir '+ 'gifs/' + base_name)
+            os.system('mkdir '+ 'gifs/' + base_name)
 
 
         if state_plot_obj is None:
@@ -134,6 +143,16 @@ class Population:
 
         method_list = [func for func in dir(self.individ_class) if callable(getattr(self.individ_class, func))]
 
+        if state_plot_obj is not None and plot_whole_pop:
+            NUM_COLORS = self.popsize+2
+
+            cm = plt.get_cmap('gist_heat')
+            cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
+            scalarMap = mplcm.ScalarMappable(norm=cNorm, cmap=cm)
+            # old way:
+            #ax.set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+            # new way:
+            #axes[1].set_prop_cycle('color',[scalarMap.to_rgba(i) for i in range(NUM_COLORS)])
 
         for i in range(generations):
             #print(i)
@@ -163,7 +182,8 @@ class Population:
             if state_plot_obj is not None:
                 axes[1].clear()
                 if plot_whole_pop:
-                    for ind in self.population:
+                    axes[1].set_prop_cycle('color',[scalarMap.to_rgba(i) for i in range(NUM_COLORS)][::-1])
+                    for ind in self.population[::-1]:
                         axes[1].plot(ind.xpos,ind.state)
 
                 state_plot_obj.copyState(self.population[0])
@@ -172,11 +192,14 @@ class Population:
 
             fig.canvas.draw()
 
+            if make_gif:
+                plt.savefig('gifs/' + base_name + '/' + str(i+1) + '.png')
+
+
             self.mateGrid()
 
 
-        date_string = datetime.now().strftime("%H-%M-%S")
-        plt.savefig('evolve_' + self.class_name + '__pop=' + str(self.popsize) + '__gen=' + str(generations) + '__' + self.kwargs_str + '__' + date_string + '.png')
+        plt.savefig(base_name + '.png')
 
         print('\n\nending pop:\n')
         #[print(tuple[1],tuple[0].state) for tuple in self.sorted_population]

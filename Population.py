@@ -9,6 +9,7 @@ import numpy as np
 import os
 import FileSystemTools as fst
 import subprocess
+from math import floor
 
 '''
 The object must have the following functions or attributes:
@@ -154,8 +155,10 @@ class Population:
         make_gif = kwargs.get('make_gif', False)
         save_best_FF = kwargs.get('save_best_FF', True)
 
+
         date_string = fst.getDateString()
         base_name = f'evolve_{self.class_name}__pop={self.popsize}__gen={N_gen}__{self.kwargs_str}__{date_string}'
+
 
 
         if make_gif:

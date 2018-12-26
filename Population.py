@@ -7,6 +7,8 @@ from copy import deepcopy
 from datetime import datetime
 import numpy as np
 import os
+import FileSystemTools as fst
+import subprocess
 
 '''
 The object must have the following functions or attributes:
@@ -19,14 +21,14 @@ The object must have the following functions or attributes:
 
 class Population:
 
-    def __init__(self,individ_class,popsize,**kwargs):
+    def __init__(self, individ_class, popsize, **kwargs):
 
 
-        self.kwargs_str = '__'.join(['{}={}'.format(x[0],x[1]) for x in kwargs.items()])
+        self.kwargs_str = '__'.join(['{}={}'.format(x[0], x[1]) for x in kwargs.items()])
         print(self.kwargs_str)
 
         self.individ_class = individ_class
-        print('using',individ_class.__name__,'class')
+        print('using', individ_class.__name__, 'class')
         self.class_name = individ_class.__name__
         self.popsize = popsize
         self.population = [self.createNewIndivid(**kwargs) for i in range(self.popsize)]
@@ -78,6 +80,26 @@ class Population:
 
         return(no_dupes)
 
+
+    def mateTournament(self):
+
+        best_N = max(int(self.popsize/5), 2)
+        self.sortIndivids()
+        self.population = [x[0] for x in self.sorted_population]
+
+        new_individs = []
+        last_ind = min(len(self.population), self.popsize)
+        for i in range(best_N):
+            for j in range(i+1,best_N):
+                b1,b2 = self.population[i].mate(self.population[j])
+                #b1,b2 = self.mate(self.population[i],self.population[j])
+                new_individs.append(b1)
+                new_individs.append(b2)
+
+        self.population = (new_individs + self.population)[:self.popsize]
+        [individ.mutate() for individ in self.population]
+
+
     def mateGrid(self):
 
         new_individs = []
@@ -91,162 +113,146 @@ class Population:
                 new_individs.append(b1)
                 new_individs.append(b2)
 
-        old_and_new_individs = deepcopy(self.population) + new_individs
+        '''old_and_new_individs = deepcopy(self.population) + new_individs
         [individ.mutate() for individ in old_and_new_individs]
-        self.population = old_and_new_individs + self.population
+        self.population = old_and_new_individs + self.population'''
+
+        best_individ = deepcopy(self.population[0])
+        self.population = self.population + new_individs
+        [individ.mutate() for individ in self.population]
+        self.population = self.population + [best_individ]
+
         self.sortIndivids()
 
-        self.population = self.deleteDupes([x[0] for x in self.sorted_population])
+        if len(self.sorted_population) > self.popsize:
+            self.population = self.deleteDupes([x[0] for x in self.sorted_population])
+        else:
+            self.population = [x[0] for x in self.sorted_population]
+
         self.population = self.population[:self.popsize]
 
-        '''self.sorted_population = self.sorted_population[:self.popsize]
-        self.population = [tuple[0] for tuple in self.sorted_population]'''
-
-
-        '''self.population = self.deleteDupes(old_and_new_individs + self.population)
-
-        self.sortIndivids()
-        self.sorted_population = self.sorted_population[:self.popsize]
-        self.population = [tuple[0] for tuple in self.sorted_population]'''
 
 
 
+    def plotFF(self, ax, best_FF, mean_FF):
+
+        ax.clear()
+        ax.set_xlabel('# generations')
+        ax.set_ylabel('fitness function')
+        ax.plot(best_FF, label='best', color='dodgerblue')
+        ax.plot(mean_FF, label='mean', color='tomato')
+        ax.legend()
+        ax.text(0.6*len(best_FF), 0.8*max(best_FF), 'best: {:.3f}\nmean: {:.3f}'.format(best_FF[-1], mean_FF[-1]))
 
 
+    def plotEvolve(self,  **kwargs):
 
+        N_gen = kwargs.get('N_gen', 550)
+        show_plot = kwargs.get('show_plot', True)
+        plot_state = kwargs.get('plot_state', True)
+        plot_whole_pop = kwargs.get('plot_whole_pop', False)
+        make_gif = kwargs.get('make_gif', False)
+        save_best_FF = kwargs.get('save_best_FF', True)
 
-    def plotEvolve(self,generations = 550,state_plot_obj = None,plot_whole_pop = False,make_gif=False):
+        date_string = fst.getDateString()
+        base_name = f'evolve_{self.class_name}__pop={self.popsize}__gen={N_gen}__{self.kwargs_str}__{date_string}'
 
-        date_string = datetime.now().strftime("%H-%M-%S")
-        base_name = 'evolve_' + self.class_name + '__pop=' + str(self.popsize) + '__gen=' + str(generations) + '__' + self.kwargs_str + '__' + date_string
 
         if make_gif:
-            print('mkdir '+ 'gifs/' + base_name)
-            os.system('mkdir '+ 'gifs/' + base_name)
+            N_gif_frames = 100
+            gif_dir = fst.combineDirAndFile('gifs', base_name)
+            print(gif_dir)
+            subprocess.check_call(['mkdir', gif_dir])
 
-
-        if state_plot_obj is None:
-            fig = plt.figure()
-            axis = plt.gca()
-            print('no subplot')
+        if plot_state:
+            fig, axes = plt.subplots(2,1,figsize=(6,8))
+            ax_FF = axes[0]
+            ax_state = axes[1]
         else:
-            fig, axes = plt.subplots(2,1,figsize=(8,10))
-            axis = axes[0]
+            fig, ax_FF = plt.subplots(1,1,figsize=(8,8))
 
-        fig.show()
+        if show_plot:
+            plt.show(block=False)
 
-        found = False
-        gen = []
+        sol_found = False
+
         best = []
         mean = []
-        cur_best,cur_mean = 0,0
+        cur_best, cur_mean = 0, 0
 
         method_list = [func for func in dir(self.individ_class) if callable(getattr(self.individ_class, func))]
 
-        if state_plot_obj is not None and plot_whole_pop:
-            NUM_COLORS = self.popsize+2
-
-            cm = plt.get_cmap('gist_heat')
+        if plot_state and plot_whole_pop:
+            NUM_COLORS = self.popsize + 2
+            cm = plt.get_cmap('RdBu')
             cNorm  = colors.Normalize(vmin=0, vmax=NUM_COLORS-1)
-            scalarMap = mplcm.ScalarMappable(norm=cNorm, cmap=cm)
-            # old way:
-            #ax.set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
-            # new way:
-            #axes[1].set_prop_cycle('color',[scalarMap.to_rgba(i) for i in range(NUM_COLORS)])
+            scalar_map = mplcm.ScalarMappable(norm=cNorm, cmap=cm)
+            pop_plot_color_list = [scalar_map.to_rgba(i) for i in range(NUM_COLORS)][::-1]
 
-        for i in range(generations):
-            #print(i)
+
+        for i in range(N_gen):
+
+
             self.sortIndivids()
-            cur_best,cur_mean = self.getBestAndMean()
+            cur_best, cur_mean = self.getBestAndMean()
 
-            gen.append(i)
+
             best.append(cur_best)
             mean.append(cur_mean)
 
+            if i%max(1, int(N_gen/20.0))==0:
+                print('Generation {}, current best = {:.3f}, current pop. size = {}'.format(i, cur_best, len(self.population)))
+
             if 'solFound' in method_list:
                 if self.population[0].solFound():
-                    print('found solution in generation {}!\n'.format(i))
+                    print(f'found solution in generation {i}!\n')
                     if 'printState' in method_list:
                         self.population[0].printState()
                     break
 
-            axis.clear()
-            axis.set_xlabel('# generations')
-            axis.set_ylabel('fitness function')
-            axis.plot(gen,best,label='best')
-            axis.plot(gen,mean,label='mean')
-            axis.legend()
+            # Plot the current best and mean.
+            self.plotFF(ax_FF, best, mean)
 
-            axis.text(.6*i,.8*max(best),'best: {:.3f}\nmean: {:.3f}'.format(cur_best,cur_mean))
+            # If we're plotting the state of the population, call their plotState() functions.
+            # You can plot either the best member, or the whole pop.
+            if plot_state:
+                ax_state.clear()
 
-            if state_plot_obj is not None:
-                axes[1].clear()
                 if plot_whole_pop:
-                    axes[1].set_prop_cycle('color',[scalarMap.to_rgba(i) for i in range(NUM_COLORS)][::-1])
-                    for ind in self.population[::-1]:
-                        axes[1].plot(ind.xpos,ind.state)
+                    for j, ind in enumerate(self.population[::-1]):
+                        ind.plotState(ax_state, color=pop_plot_color_list[j])
 
-                state_plot_obj.copyState(self.population[0])
-                state_plot_obj.plotState(plot_axis=axes[1])
+                self.population[0].plotState(ax_state, color='black', plot_sol=True, plot_label=True)
 
-
-            fig.canvas.draw()
+            if show_plot:
+                fig.canvas.draw()
 
             if make_gif:
-                plt.savefig('gifs/' + base_name + '/' + str(i+1) + '.png')
+                if i==0 or (i%max(1, int(N_gen/N_gif_frames))==0):
+                    plt.savefig(f'{gif_dir}/{i+1}.png')
 
-
+            #self.mateTournament()
             self.mateGrid()
 
 
-        plt.savefig(base_name + '.png')
+        # Finished
 
-        print('\n\nending pop:\n')
-        #[print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
 
-        print('\nending mean:',cur_mean)
+        plt.savefig(f'misc_runs/{base_name}.png')
+
+        if save_best_FF:
+            np.savetxt(f'misc_runs/bestFF_{base_name}.txt', best)
+
+        if make_gif:
+            gif_name = fst.gifFromImages(gif_dir, base_name, ext='.png', delay=10)
+            gif_basename = fst.fnameFromFullPath(gif_name)
+            subprocess.check_call(['mv', gif_name, fst.combineDirAndFile('misc_runs', gif_basename)])
+            subprocess.check_call(['rm', '-rf', gif_dir])
+
+        print('\nending mean = {:.3f}'.format(cur_mean))
 
         return(self.population[0])
 
-
-    def evolve(self,generations = 550):
-
-
-
-        #generations = 550
-
-        gen = []
-        best = []
-        mean = []
-
-        found = False
-
-        cur_best,cur_mean = 0,0
-
-        for i in range(generations):
-            self.sortIndivids()
-            cur_best,cur_mean = self.getBestAndMean()
-
-            gen.append(i)
-            best.append(cur_best)
-            mean.append(cur_mean)
-
-            if cur_best==0 and not found:
-                print('found solution in generation {}!\n'.format(i))
-                self.sorted_population[0][0].printState()
-                found = True
-
-
-            self.mateGrid()
-
-
-        date_string = datetime.now().strftime("%H-%M-%S")
-
-        print('\n\nending pop:\n')
-        [print(tuple[1],tuple[0].state) for tuple in self.sorted_population]
-
-        print('\nending mean:',cur_mean)
-#
 
 #scrap
 

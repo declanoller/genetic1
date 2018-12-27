@@ -35,15 +35,15 @@ will check for certain parameters passed to it, but also pass all `**kwargs` par
 to the individual class, so parameters that are specific to the class should be passed
 to `Population`'s init, like this.
 
--sameness_thresh and same_thresh_decay_steps are actually also specific to `Brachistochrone`,
+-`sameness_thresh` and `same_thresh_decay_steps` are actually also specific to `Brachistochrone`,
 but should probably be incorporated into any problem that's continuous.
 
 Part of what I found, working with this, was that for problems that are continuous like this one,
 you need to make sure the solutions can't get too similar to each other while it's searching, or
 they will converge to a state that's not even a local minimum, just a little hard to find the way
-out of. So that's what sameness_thresh is, it's the threshold below which two states are
+out of. So that's what `sameness_thresh` is, it's the threshold below which two states are
 considered the same. However, you also want to decrease this as the search gets
-finer, so that's what same_thresh_decay_steps is for. It's the number of steps it will
+finer, so that's what `same_thresh_decay_steps` is for. It's the number of steps it will
 take to geometrically decrease to `10**-5`.
 
 To run an evolution of the population:
@@ -51,11 +51,11 @@ To run an evolution of the population:
 ending_state = pop1.plotEvolve(N_gen=N_gen, plot_whole_pop=True, make_gif=True, show_plot=False)
 ```
 
-- N_gen is the number of generations to run for
-- plot_whole_pop is a parameter for plotting the whole population in the state plot
-- make_gif is whether you'd like to make a gif of the progression, it limits it to 50 or 100
+- `N_gen` is the number of generations to run for
+- `plot_whole_pop` is a parameter for plotting the whole population in the state plot
+- `make_gif` is whether you'd like to make a gif of the progression, it limits it to 50 or 100
 frames
-- show_plot is whether it shows you the plot updating as you run
+- `show_plot` is whether it shows you the plot updating as you run
 
 the individual class is expected to have a `plotState()` function that you pass it an axis
 to, and it plots the state of that individ.

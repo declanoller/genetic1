@@ -28,9 +28,9 @@ To create a population, this is how I typically do it:
 pop1 = Population(Brachistochrone, Npop, N=20, height=1.3, sameness_thresh=15*10**-2, mutate_strength_height_frac=0.21, same_thresh_decay_steps=N_gen)
 ```
 
-- Brachistochrone is the name of the individual class (imported)
-- Npop is population size
-- Npts, mutate_strength_height, and height are parameters specific to the `Brachistochrone` class. Population
+- `Brachistochrone` is the name of the individual class (imported)
+- `Npop` is population size
+- `Npts`, mutate_strength_height, and height are parameters specific to the `Brachistochrone` class. Population
 will check for certain parameters passed to it, but also pass all `**kwargs` parameters
 to the individual class, so parameters that are specific to the class should be passed
 to `Population`'s init, like this.

@@ -15,7 +15,7 @@ from math import floor
 The object must have the following functions or attributes:
 -fitnessFunction()
 -mutate()
--isSame()
+-isSameState()
 -mate()
 -state (maybe change to getState()?)
 '''
